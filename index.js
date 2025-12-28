@@ -463,6 +463,70 @@ app.post('/login', (req, res) => {
   });
 });
 
+app.put('/usuario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, email, senha } = req.body;
+
+    if (!nome || !email) {
+      return res.status(400).json({
+        message: 'Nome e email são obrigatórios'
+      });
+    }
+
+    let senhaCriptografada = null;
+
+    if (senha) {
+      senhaCriptografada = await bcrypt.hash(senha, 10);
+    }
+
+    let query = `
+      UPDATE users
+      SET nome = ?, email = ?
+    `;
+
+    let params = [nome, email];
+
+    if (senhaCriptografada) {
+      query += `, senha = ?`;
+      params.push(senhaCriptografada);
+    }
+
+    query += ` WHERE id = ?`;
+    params.push(id);
+
+    db.run(query, params, function (err) {
+      if (err) {
+        if (err.message.includes('UNIQUE')) {
+          return res.status(409).json({
+            message: 'Email já cadastrado'
+          });
+        }
+
+        return res.status(500).json({
+          message: 'Erro ao atualizar usuário'
+        });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({
+          message: 'Usuário não encontrado'
+        });
+      }
+
+      return res.status(200).json({
+        message: 'Usuário atualizado com sucesso'
+      });
+    });
+
+  } catch (error) {
+    console.log('error:', error);
+    return res.status(500).json({
+      message: 'Erro interno'
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
