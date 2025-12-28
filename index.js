@@ -463,7 +463,7 @@ app.post('/login', (req, res) => {
   });
 });
 
-app.put('/usuario/:id', async (req, res) => {
+app.put('/usuario/:id', autenticarToken,  async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, email, senha } = req.body;
