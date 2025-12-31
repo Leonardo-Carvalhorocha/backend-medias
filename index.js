@@ -194,7 +194,18 @@ function formatarValorParaBRL(valorNumerico) {
  \$$$$$$$$ \$$   \$$ \$$$$$$$  \$$        \$$$$$$  \$$$$$$ \$$   \$$    \$$     \$$$$$$                                                                             
 */
 
-app.post('/select-filtros', autenticarToken,upload.single('file'), (req, res) => {
+/*
+  /$$$$$$   /$$$$$$  /$$    /$$
+ /$$__  $$ /$$__  $$| $$   | $$
+| $$  \__/| $$  \__/| $$   | $$
+| $$      |  $$$$$$ |  $$ / $$/
+| $$       \____  $$ \  $$ $$/ 
+| $$    $$ /$$  \ $$  \  $$$/  
+|  $$$$$$/|  $$$$$$/   \  $/   
+ \______/  \______/     \_/ 
+*/
+
+app.post('/select-filtros', autenticarToken, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).send('Arquivo CSV não enviado');
@@ -216,7 +227,7 @@ app.post('/select-filtros', autenticarToken,upload.single('file'), (req, res) =>
   }
 });
 
-app.post('/calculo-medias', autenticarToken,upload.single('file'), async (req, res) => {
+app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, res) => {
   try {
     let { filtros } = req.body;
     filtros = JSON.parse(filtros);
@@ -321,9 +332,9 @@ app.post('/calculo-medias', autenticarToken,upload.single('file'), async (req, r
   }
 });
 
-app.post('/download', autenticarToken,(req, res) => {
+app.post('/download', autenticarToken, (req, res) => {
   const dados = obterCsvDoCache().map(csvCache => ({
-    ID: csvCache.filtroAplicado,
+    ID: csvCache.filtrados[0].ID,
     TotalMedia: Number(
       csvCache.totalValorMedias
         .replace('R$', '')
@@ -353,6 +364,18 @@ app.post('/download', autenticarToken,(req, res) => {
 
   res.send(buffer);
 });
+
+/*
+ /$$   /$$  /$$$$$$  /$$   /$$  /$$$$$$  /$$$$$$$  /$$$$$$  /$$$$$$ 
+| $$  | $$ /$$__  $$| $$  | $$ /$$__  $$| $$__  $$|_  $$_/ /$$__  $$
+| $$  | $$| $$  \__/| $$  | $$| $$  \ $$| $$  \ $$  | $$  | $$  \ $$
+| $$  | $$|  $$$$$$ | $$  | $$| $$$$$$$$| $$$$$$$/  | $$  | $$  | $$
+| $$  | $$ \____  $$| $$  | $$| $$__  $$| $$__  $$  | $$  | $$  | $$
+| $$  | $$ /$$  \ $$| $$  | $$| $$  | $$| $$  \ $$  | $$  | $$  | $$
+|  $$$$$$/|  $$$$$$/|  $$$$$$/| $$  | $$| $$  | $$ /$$$$$$|  $$$$$$/
+ \______/  \______/  \______/ |__/  |__/|__/  |__/|______/ \______/ 
+*/
+
 
 app.post('/usuario', async (req, res) => {
   try {
@@ -448,7 +471,7 @@ app.post('/login', (req, res) => {
       },
       JWT_SECRET,
       {
-        expiresIn: '8h'
+        expiresIn: '2s'
       }
     );
 
