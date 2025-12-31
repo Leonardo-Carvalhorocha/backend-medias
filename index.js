@@ -253,17 +253,15 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
 
     const resultados = [];
     for (const filtro of filtros) {
-      const {
-        colunaCsv_01,
-        valorFiltro_01,
-        colunaCsv_02,
-        valorFiltro_02,
-        periodoInicio,
-        periodoFim
-      } = filtro;
+      
+        let colunaCsv_01 = filtro.colunaCsv_01.trim();
+        let valorFiltro_01 = filtro.valorFiltro_01.trim();
+        let colunaCsv_02 = filtro.colunaCsv_02.trim();
+        let valorFiltro_02 = filtro.valorFiltro_02.trim();
+        let periodoInicio = filtro.periodoInicio.trim();
+        let periodoFim = filtro.periodoFim.trim();
 
-
-      if (!colunaCsv_01 || !valorFiltro_01) {
+      if (!colunaCsv_01.trim() || !valorFiltro_01) {
         continue;
       }
       let registrosFiltrados = registrosCsv.filter(
