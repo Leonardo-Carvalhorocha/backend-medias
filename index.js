@@ -194,7 +194,18 @@ function formatarValorParaBRL(valorNumerico) {
  \$$$$$$$$ \$$   \$$ \$$$$$$$  \$$        \$$$$$$  \$$$$$$ \$$   \$$    \$$     \$$$$$$                                                                             
 */
 
-app.post('/select-filtros', autenticarToken,upload.single('file'), (req, res) => {
+/*
+  /$$$$$$   /$$$$$$  /$$    /$$
+ /$$__  $$ /$$__  $$| $$   | $$
+| $$  \__/| $$  \__/| $$   | $$
+| $$      |  $$$$$$ |  $$ / $$/
+| $$       \____  $$ \  $$ $$/ 
+| $$    $$ /$$  \ $$  \  $$$/  
+|  $$$$$$/|  $$$$$$/   \  $/   
+ \______/  \______/     \_/ 
+*/
+
+app.post('/select-filtros', autenticarToken, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).send('Arquivo CSV não enviado');
@@ -216,7 +227,7 @@ app.post('/select-filtros', autenticarToken,upload.single('file'), (req, res) =>
   }
 });
 
-app.post('/calculo-medias', autenticarToken,upload.single('file'), async (req, res) => {
+app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, res) => {
   try {
     let { filtros } = req.body;
     filtros = JSON.parse(filtros);
@@ -242,17 +253,15 @@ app.post('/calculo-medias', autenticarToken,upload.single('file'), async (req, r
 
     const resultados = [];
     for (const filtro of filtros) {
-      const {
-        colunaCsv_01,
-        valorFiltro_01,
-        colunaCsv_02,
-        valorFiltro_02,
-        periodoInicio,
-        periodoFim
-      } = filtro;
+      
+        let colunaCsv_01 = filtro.colunaCsv_01.trim();
+        let valorFiltro_01 = filtro.valorFiltro_01.trim();
+        let colunaCsv_02 = filtro.colunaCsv_02.trim();
+        let valorFiltro_02 = filtro.valorFiltro_02.trim();
+        let periodoInicio = filtro.periodoInicio.trim();
+        let periodoFim = filtro.periodoFim.trim();
 
-
-      if (!colunaCsv_01 || !valorFiltro_01) {
+      if (!colunaCsv_01.trim() || !valorFiltro_01) {
         continue;
       }
       let registrosFiltrados = registrosCsv.filter(
@@ -321,9 +330,9 @@ app.post('/calculo-medias', autenticarToken,upload.single('file'), async (req, r
   }
 });
 
-app.post('/download', autenticarToken,(req, res) => {
+app.post('/download', autenticarToken, (req, res) => {
   const dados = obterCsvDoCache().map(csvCache => ({
-    ID: csvCache.filtroAplicado,
+    ID: csvCache.filtrados[0].ID,
     TotalMedia: Number(
       csvCache.totalValorMedias
         .replace('R$', '')
@@ -354,12 +363,21 @@ app.post('/download', autenticarToken,(req, res) => {
   res.send(buffer);
 });
 
+/*
+ /$$   /$$  /$$$$$$  /$$   /$$  /$$$$$$  /$$$$$$$  /$$$$$$  /$$$$$$ 
+| $$  | $$ /$$__  $$| $$  | $$ /$$__  $$| $$__  $$|_  $$_/ /$$__  $$
+| $$  | $$| $$  \__/| $$  | $$| $$  \ $$| $$  \ $$  | $$  | $$  \ $$
+| $$  | $$|  $$$$$$ | $$  | $$| $$$$$$$$| $$$$$$$/  | $$  | $$  | $$
+| $$  | $$ \____  $$| $$  | $$| $$__  $$| $$__  $$  | $$  | $$  | $$
+| $$  | $$ /$$  \ $$| $$  | $$| $$  | $$| $$  \ $$  | $$  | $$  | $$
+|  $$$$$$/|  $$$$$$/|  $$$$$$/| $$  | $$| $$  | $$ /$$$$$$|  $$$$$$/
+ \______/  \______/  \______/ |__/  |__/|__/  |__/|______/ \______/ 
+*/
+
+
 app.post('/usuario', async (req, res) => {
   try {
     const { nome, email, senha } = req.body;
-    console.log("nome: ", nome);
-    console.log("email: ", email);
-    console.log("senha: ", senha);
     if (!nome || !email || !senha) {
       return res.status(400).json({
         message: 'Nome, email e senha são obrigatórios'
