@@ -15,7 +15,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const app = express();
 const port = process.env.PORT || 3000;
 
-
 /*
   ______   ________  _______    ______   ______   ______  
  /      \ |        \|       \  /      \ |      \ /      \ 
