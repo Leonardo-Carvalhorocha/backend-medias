@@ -15,6 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const app = express();
 const port = process.env.PORT || 3000;
 
+
 /*
   ______   ________  _______    ______   ______   ______  
  /      \ |        \|       \  /      \ |      \ /      \ 
@@ -33,6 +34,24 @@ app.use(express.json());
 const upload = multer({
   storage: multer.memoryStorage()
 });
+
+
+function paginar(resultados, page, perPage = 25) {
+  const total = resultados.length;
+  const totalPages = Math.ceil(total / perPage);
+  const start = (page - 1) * perPage;
+  const end = start + perPage;
+
+  return {
+    page,
+    perPage,
+    total,
+    totalPages,
+    resultados: resultados.slice(start, end),
+  };
+}
+
+
 
 /*
   ______    ______    ______   __    __  ________        ________  __       __        __       __  ________  __       __  _______   ______   ______  
@@ -231,6 +250,8 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
   try {
     let { filtros } = req.body;
     filtros = JSON.parse(filtros);
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 25;
 
     if (!req.file) {
       return res.status(400).send('Arquivo CSV não enviado');
@@ -252,6 +273,25 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
     });
 
     const resultados = [];
+    if(filtros[0].colunaCsv_01 === 'Período Aquisitivo') {
+      const ids = new Set();
+      for (const csv of registrosCsv) {
+        if (!ids.has(csv.ID)) {
+          ids.add(csv.ID);
+          filtros.push({
+            colunaCsv_01: 'ID',
+            valorFiltro_01: csv.ID,
+            colunaCsv_02: '',
+            valorFiltro_02: '',
+            periodoInicio: filtros[0]?.periodoInicio,
+            periodoFim: filtros[0]?.periodoFim,
+            aberto: true,
+            mes: filtros[0]?.mes
+          });
+        }
+      }
+      filtros.shift();
+    }
     for (const filtro of filtros) {
         let colunaCsv_01 = filtro.colunaCsv_01.trim();
         let valorFiltro_01 = filtro.valorFiltro_01.trim();
@@ -260,13 +300,14 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
         let periodoInicio = filtro.periodoInicio.trim();
         let periodoFim = filtro.periodoFim.trim();
         let mes = filtro.mes;
-      
       if (!colunaCsv_01.trim() || !valorFiltro_01) {
         continue;
       }
+
       let registrosFiltrados = registrosCsv.filter(
         registro => registro[colunaCsv_01] === valorFiltro_01
       );
+
       if (
         colunaCsv_02 === 'Período Aquisitivo' &&
         periodoInicio &&
@@ -321,14 +362,50 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
     }
 
     salvarCsvNoCache(resultados);
+    const paginado = paginar(resultados, page, perPage);
 
-    return res.json(resultados);
+    return res.json(paginado);
 
   } catch (error) {
     console.error(error);
     return res.status(500).send('Erro interno');
   }
 });
+
+app.post('/page-medias', autenticarToken, async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 25;
+    const resultadosCacheados = obterCsvDoCache();
+
+    if (!Array.isArray(resultadosCacheados)) {
+      return res.status(404).json({
+        message: 'Nenhum resultado encontrado em cache'
+      });
+    }
+
+    const total = resultadosCacheados.length;
+    const totalPages = Math.ceil(total / perPage);
+
+    const inicio = (page - 1) * perPage;
+    const fim = inicio + perPage;
+
+    const resultadosPaginados = resultadosCacheados.slice(inicio, fim);
+
+    return res.json({
+      page,
+      perPage,
+      total,
+      totalPages,
+      resultados: resultadosPaginados
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send('Erro interno');
+  }
+});
+
 
 app.post('/download', autenticarToken, (req, res) => {
   const dados = obterCsvDoCache().map(csvCache => ({
