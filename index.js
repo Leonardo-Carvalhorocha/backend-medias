@@ -281,7 +281,7 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
           filtros.push({
             colunaCsv_01: 'ID',
             valorFiltro_01: csv.ID,
-            colunaCsv_02: '',
+            colunaCsv_02: 'Período Aquisitivo',
             valorFiltro_02: '',
             periodoInicio: filtros[0]?.periodoInicio,
             periodoFim: filtros[0]?.periodoFim,
@@ -325,17 +325,14 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
           ano: anoFim,
           mes: mesFim
         });
-
         registrosFiltrados = registrosFiltrados.filter(registro => {
           const periodoExtraido = extrairAnoMesDoPeriodo(
             registro[colunaCsv_02]
           );
-
           if (!periodoExtraido) return false;
 
           const periodoRegistroNumerico =
             converterPeriodoParaNumero(periodoExtraido);
-
           return (
             periodoRegistroNumerico >= periodoInicialNumerico &&
             periodoRegistroNumerico <= periodoFinalNumerico
