@@ -156,7 +156,7 @@ function converterValorMonetarioParaNumero(registro) {
   return Number.isFinite(valorNumerico) ? valorNumerico : 0;
 }
 
-async function calcularMediaAnual(valuesFilters) {
+async function calcularMedia(valuesFilters, mes) {
   return new Promise((resolve) => {
     let value = 0;
 
@@ -164,7 +164,7 @@ async function calcularMediaAnual(valuesFilters) {
       value += valueFilter;
     }
 
-    value = value / 12;
+    value = value / mes;
 
     resolve(value);
   });
@@ -253,14 +253,14 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
 
     const resultados = [];
     for (const filtro of filtros) {
-      
         let colunaCsv_01 = filtro.colunaCsv_01.trim();
         let valorFiltro_01 = filtro.valorFiltro_01.trim();
         let colunaCsv_02 = filtro.colunaCsv_02.trim();
         let valorFiltro_02 = filtro.valorFiltro_02.trim();
         let periodoInicio = filtro.periodoInicio.trim();
         let periodoFim = filtro.periodoFim.trim();
-
+        let mes = filtro.mes;
+      
       if (!colunaCsv_01.trim() || !valorFiltro_01) {
         continue;
       }
@@ -309,7 +309,7 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
         .map(registro => converterValorMonetarioParaNumero(registro))
         .filter(valor => !isNaN(valor));
 
-      const mediaAnualCalculada = await calcularMediaAnual(valoresMonetarios);
+      const mediaAnualCalculada = await calcularMedia(valoresMonetarios, mes);
       const mediaAnualFormatada = formatarValorParaBRL(mediaAnualCalculada);
 
       resultados.push({
