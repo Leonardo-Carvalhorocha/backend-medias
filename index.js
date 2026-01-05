@@ -52,6 +52,13 @@ function paginar(resultados, page, perPage = 25) {
 }
 
 
+const formattDate = (valor) => {
+  const [ano, mes] = valor.split('-');
+  const dataFormatada = `${mes}/${ano}`;
+  return dataFormatada;
+}
+
+
 
 /*
   ______    ______    ______   __    __  ________        ________  __       __        __       __  ________  __       __  _______   ______   ______  
@@ -286,7 +293,8 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
             periodoInicio: filtros[0]?.periodoInicio,
             periodoFim: filtros[0]?.periodoFim,
             aberto: true,
-            mes: filtros[0]?.mes
+            mes: filtros[0]?.mes,
+            filtroAplicado: `Período inicial ${formattDate(filtros[0]?.periodoInicio)} período final ${formattDate(filtros[0]?.periodoFim)}`
           });
         }
       }
@@ -300,6 +308,7 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
         let periodoInicio = filtro.periodoInicio.trim();
         let periodoFim = filtro.periodoFim.trim();
         let mes = filtro.mes;
+        let filtroAplicado = filtro.filtroAplicado ? filtro.filtroAplicado : null;
       if (!colunaCsv_01.trim() || !valorFiltro_01) {
         continue;
       }
@@ -308,6 +317,8 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
         registro => registro[colunaCsv_01] === valorFiltro_01
       );
 
+      let nomeFuncionario = registrosFiltrados && registrosFiltrados.length > 0 ? registrosFiltrados[0].Nome : null;
+      
       if (
         colunaCsv_02 === 'Período Aquisitivo' &&
         periodoInicio &&
@@ -325,6 +336,7 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
           ano: anoFim,
           mes: mesFim
         });
+
         registrosFiltrados = registrosFiltrados.filter(registro => {
           const periodoExtraido = extrairAnoMesDoPeriodo(
             registro[colunaCsv_02]
@@ -351,7 +363,8 @@ app.post('/calculo-medias', autenticarToken, upload.single('file'), async (req, 
       const mediaAnualFormatada = formatarValorParaBRL(mediaAnualCalculada);
 
       resultados.push({
-        filtroAplicado: valorFiltro_01,
+        nomeFuncionario: nomeFuncionario,
+        filtroAplicado: filtroAplicado ? filtroAplicado : valorFiltro_01,
         filtrados: registrosFiltrados,
         totalValorMedias: mediaAnualFormatada,
         totalFiltrados: registrosFiltrados.length
@@ -380,29 +393,13 @@ app.post('/page-medias', autenticarToken, async (req, res) => {
         message: 'Nenhum resultado encontrado em cache'
       });
     }
-
-    const total = resultadosCacheados.length;
-    const totalPages = Math.ceil(total / perPage);
-
-    const inicio = (page - 1) * perPage;
-    const fim = inicio + perPage;
-
-    const resultadosPaginados = resultadosCacheados.slice(inicio, fim);
-
-    return res.json({
-      page,
-      perPage,
-      total,
-      totalPages,
-      resultados: resultadosPaginados
-    });
-
+    const paginado = paginar(resultadosCacheados, page, perPage);
+    return res.json(paginado);
   } catch (error) {
     console.error(error);
     return res.status(500).send('Erro interno');
   }
 });
-
 
 app.post('/download', autenticarToken, (req, res) => {
   const dados = obterCsvDoCache().map(csvCache => ({
