@@ -9,6 +9,7 @@ const {
   salvarCsvNoCache,
   paginar,
   obterCsvDoCache,
+  converterParaAnoMes,
 } = require("../utils/utils");
 const { Readable } = require('stream');
 const csv = require('csv-parser');
@@ -237,9 +238,81 @@ const filtrosCsv = async (req, res) => {
     }
 }
 
+const buildFiltros = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send("Arquivo CSV não enviado");
+    }
+
+    const conteudoArquivo = req.file.buffer.toString("utf-8");
+
+    const linhas = conteudoArquivo
+      .split("\n")
+      .map(linha => linha.trim())
+      .filter(Boolean);
+
+    if (linhas.length === 0) {
+      return res.status(400).send("Arquivo CSV vazio");
+    }
+
+    /* ==========================
+       Validação do cabeçalho
+    =========================== */
+    const cabecalho = linhas[0].split(",").map(c => c.trim());
+
+    const obrigatorias = ["id", "periodoInicial", "periodoFinal", "mes"];
+
+    const faltantes = obrigatorias.filter(col => !cabecalho.includes(col));
+
+    if (faltantes.length > 0) {
+      return res.status(400).json({
+        erro: "Cabeçalho do CSV inválido",
+        colunasFaltantes: faltantes,
+      });
+    }
+
+    /* ==========================
+       Índices das colunas
+    =========================== */
+    const idxId = cabecalho.indexOf("id");
+    const idxPeriodoInicial = cabecalho.indexOf("periodoInicial");
+    const idxPeriodoFinal = cabecalho.indexOf("periodoFinal");
+    const idxMes = cabecalho.indexOf("mes");
+
+    /* ==========================
+       Processamento
+    =========================== */
+    linhas.shift();
+
+    const filtros = linhas.map((linha) => {
+      const valores = linha.split(",").map(v => v.trim());
+
+      return {
+        colunaCsv_01: "ID",
+        valorFiltro_01: valores[idxId],
+
+        colunaCsv_02: "Período Aquisitivo",
+        valorFiltro_02: "",
+
+        periodoInicio: converterParaAnoMes(valores[idxPeriodoInicial]),
+        periodoFim: converterParaAnoMes(valores[idxPeriodoFinal]),
+
+        aberto: false,
+        mes: Number(valores[idxMes]) || 12,
+      };
+    });
+
+    return res.json(filtros);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Erro interno");
+  }
+};
+
 module.exports = {
     download,
     calculoMedias,
     paginacaoMedia,
-    filtrosCsv
+    filtrosCsv,
+    buildFiltros
 }

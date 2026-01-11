@@ -159,6 +159,14 @@ const paginar = (resultados, page, perPage = 25) => {
   };
 }
 
+function converterParaAnoMes(periodo) {
+  if (!periodo) return "";
+
+  // aceita: 01/2026 ou 001/2026
+  const [mes, ano] = periodo.split("/");
+
+  return `${ano}-${mes.padStart(2, "0")}`;
+}
 
 const formattDate = (valor) => {
   const [ano, mes] = valor.split('-');
@@ -177,5 +185,6 @@ module.exports = {
     calcularMedia,
     formatarValorParaBRL,
     paginar,
-    formattDate
+    formattDate,
+    converterParaAnoMes
 }
