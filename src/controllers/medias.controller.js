@@ -296,9 +296,9 @@ const buildFiltros = async (req, res) => {
     const calcularPeriodoInicial = (data) => {
       let { dia, mes, ano } = parseDataBR(data);
 
-      const diasTrabalhados = 30 - dia;
+      const diasTrabalhados = diasNoMes(ano, mes) - dia;
 
-      if (diasTrabalhados <= 15) {
+      if(diasTrabalhados > 15) {
         mes += 1;
         if (mes > 12) {
           mes = 1;
@@ -322,6 +322,11 @@ const buildFiltros = async (req, res) => {
 
       return formatAnoMes(ano, mes);
     };
+
+    const diasNoMes = (ano, mes) => {
+      return new Date(ano, mes, 0).getDate();
+    };
+
 
     /* ==========================
        Processamento
