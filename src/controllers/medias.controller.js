@@ -312,11 +312,11 @@ const buildFiltros = async (req, res) => {
     const calcularPeriodoFinal = (data) => {
       let { dia, mes, ano } = parseDataBR(data);
 
-      if (dia >= 15) {
-        mes += 1;
-        if (mes > 12) {
-          mes = 1;
-          ano += 1;
+      if (dia <= 15) {
+        mes -= 1;
+        if (mes == 0) {
+          mes = 12;
+          ano -= 1;
         }
       }
 
