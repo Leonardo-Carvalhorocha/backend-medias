@@ -8,8 +8,7 @@ const {
   formatarValorParaBRL,
   salvarCsvNoCache,
   paginar,
-  obterCsvDoCache,
-  converterParaAnoMes,
+  obterCsvDoCache
 } = require("../utils/utils");
 const { Readable } = require('stream');
 const csv = require('csv-parser');
@@ -280,6 +279,51 @@ const buildFiltros = async (req, res) => {
     const idxMes = cabecalho.indexOf("mes");
 
     /* ==========================
+       Funções utilitárias
+    =========================== */
+    const parseDataBR = (data) => {
+      const [dia, mes, ano] = data.split("/").map(Number);
+      return { dia, mes, ano };
+    };
+
+    const formatAnoMes = (ano, mes) => {
+      return `${ano}-${String(mes).padStart(2, "0")}`;
+    };
+
+    /* ==========================
+       Regras de negócio
+    =========================== */
+    const calcularPeriodoInicial = (data) => {
+      let { dia, mes, ano } = parseDataBR(data);
+
+      const diasTrabalhados = 30 - dia;
+
+      if (diasTrabalhados <= 15) {
+        mes += 1;
+        if (mes > 12) {
+          mes = 1;
+          ano += 1;
+        }
+      }
+
+      return formatAnoMes(ano, mes);
+    };
+
+    const calcularPeriodoFinal = (data) => {
+      let { dia, mes, ano } = parseDataBR(data);
+
+      if (dia >= 15) {
+        mes += 1;
+        if (mes > 12) {
+          mes = 1;
+          ano += 1;
+        }
+      }
+
+      return formatAnoMes(ano, mes);
+    };
+
+    /* ==========================
        Processamento
     =========================== */
     linhas.shift();
@@ -294,8 +338,8 @@ const buildFiltros = async (req, res) => {
         colunaCsv_02: "Período Aquisitivo",
         valorFiltro_02: "",
 
-        periodoInicio: converterParaAnoMes(valores[idxPeriodoInicial]),
-        periodoFim: converterParaAnoMes(valores[idxPeriodoFinal]),
+        periodoInicio: calcularPeriodoInicial(valores[idxPeriodoInicial]),
+        periodoFim: calcularPeriodoFinal(valores[idxPeriodoFinal]),
 
         aberto: false,
         mes: Number(valores[idxMes]) || 12,
@@ -303,11 +347,13 @@ const buildFiltros = async (req, res) => {
     });
 
     return res.json(filtros);
+
   } catch (error) {
     console.error(error);
     return res.status(500).send("Erro interno");
   }
 };
+
 
 module.exports = {
     download,
