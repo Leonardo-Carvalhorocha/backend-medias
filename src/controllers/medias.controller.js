@@ -298,7 +298,7 @@ const buildFiltros = async (req, res) => {
 
       const diasTrabalhados = 30 - dia;
 
-      if(diasTrabalhados > 15) {
+      if(diasTrabalhados < 15) {
         mes += 1;
         if (mes > 12) {
           mes = 1;
