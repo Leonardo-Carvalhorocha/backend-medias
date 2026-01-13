@@ -17,7 +17,7 @@ app.use(express.json());
 app.use('/auth', auth);
 app.use('/usuario', autenticarToken, usuarioRoutes);
 app.use('/medias', autenticarToken, medias);
-app.use('/decimo-terceiro', decimoTerceiro);
+app.use('/decimo-terceiro',autenticarToken, decimoTerceiro);
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
