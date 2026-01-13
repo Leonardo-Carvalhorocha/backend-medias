@@ -165,6 +165,38 @@ const formattDate = (valor) => {
   return dataFormatada;
 }
 
+const inserirDados = (db, dados) => {
+  db.serialize(() => {
+    db.run("BEGIN TRANSACTION");
+
+    const sql = `
+      INSERT INTO adiantamentoDecimoTerceiro
+      (id, nome, grupoCalendario, concepto, valor)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        nome = excluded.nome,
+        grupoCalendario = excluded.grupoCalendario,
+        concepto = excluded.concepto,
+        valor = excluded.valor
+    `;
+
+    const stmt = db.prepare(sql);
+
+    for (let linha of dados) {
+      stmt.run([
+        linha.ID,
+        linha.Nome,
+        linha['Grupo Calendário'],
+        linha.Concepto,
+        linha[' Valor ']
+      ]);
+    }
+
+    stmt.finalize();
+    db.run("COMMIT");
+  });
+};
+
 
 module.exports = {
     salvarCsvNoCache,
@@ -176,5 +208,6 @@ module.exports = {
     calcularMedia,
     formatarValorParaBRL,
     paginar,
-    formattDate
+    formattDate,
+    inserirDados
 }

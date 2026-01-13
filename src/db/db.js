@@ -22,4 +22,14 @@ db.run(`
   )
 `);
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS adiantamentoDecimoTerceiro (
+    id INTEGER PRIMARY KEY,
+    nome TEXT NOT NULL,
+    grupoCalendario TEXT NOT NULL,
+    concepto TEXT NOT NULL,
+    valor REAL NOT NULL
+  )
+`);
+
 module.exports = db;
