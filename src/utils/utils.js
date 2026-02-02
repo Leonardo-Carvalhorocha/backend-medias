@@ -188,7 +188,7 @@ const inserirDados = (db, dados) => {
         linha.Nome,
         linha['Grupo Calendário'],
         linha.Concepto,
-        linha[' Valor ']
+        linha['Valor']
       ]);
     }
 

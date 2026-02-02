@@ -75,6 +75,16 @@ let atualizarBaseDados = async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const dados = XLSX.utils.sheet_to_json(worksheet);
+    console.log("Dados lidos do arquivo:", dados);
+    dados.forEach(dado => {
+      dado.Valor = +dado.Valor
+        .replace("R$", "")
+        .replace(/\./g, "")
+        .replace(",", ".")
+        .trim();
+    });
+
+    console.log("Dados processados:", dados);
     inserirDados(db, dados);
     return res.status(200).json({
       message: "Dados importados com sucesso",
