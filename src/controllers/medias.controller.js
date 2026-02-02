@@ -181,6 +181,7 @@ const calculoMedias = async (req, res) => {
         id: idFuncionario,
         nomeFuncionario: nomeFuncionario,
         filtroAplicado: filtroAplicado ? filtroAplicado : valorFiltro_01,
+        periodoAquisitivo: colunaCsv_02 === "Período Aquisitivo" ? `${periodoInicio} a ${periodoFim}` : null,
         filtrados: registrosFiltrados,
         totalValorMedias: mediaAnualFormatada,
         totalFiltrados: registrosFiltrados.length,
