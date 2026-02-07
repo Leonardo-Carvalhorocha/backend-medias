@@ -63,6 +63,38 @@ const login = async (req, res) => {
   });
 }
 
+const criarUsuario = async (req, res) => {
+  try {
+    const { nome, email, senha } = req.body;
+
+    if (!nome || !email || !senha) {
+      return res.status(400).json({
+        message: "Por favor, informe nome, email e senha."
+      });
+    }
+
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+    const query = `INSERT INTO users (nome, email, senha) VALUES (?, ?, ?)`;
+
+    db.run(query, [nome, email, senhaCriptografada], function(err) {
+      if (err) {
+        if (err.message.includes("UNIQUE")) {
+          return res.status(409).json({ message: "Email já cadastrado" });
+        }
+        return res.status(500).json({ message: "Erro ao criar usuário" });
+      }
+
+      return res.status(201).json({
+        message: "Usuário criado com sucesso",
+        id: this.lastID
+      });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro interno", error: error.message });
+  }
+};
+
 module.exports = {
-    login
+    login,
+    criarUsuario
 }
